@@ -1,13 +1,13 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>The Problem Architect</title>
-    <link>https://yourdomain.com/</link>
+    <link>https://1498saurav.github.io/the-problem-architect/</link>
     <description>Recent content on The Problem Architect</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 03 Jun 2025 20:00:00 +0530</lastBuildDate>
     
-        <atom:link href="https://yourdomain.com/index.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="https://1498saurav.github.io/the-problem-architect/index.xml" rel="self" type="application/rss+xml" />
     
     
   </channel>

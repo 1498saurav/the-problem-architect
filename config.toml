@@ -1,8 +1,9 @@
-baseURL = "https://yourdomain.com/"
 languageCode = "en-us"
 title = "The Problem Architect"
 theme = "hugo-notepadium"
 enableRobotsTXT = true
+baseURL = "https://1498saurav.github.io/the-problem-architect/"
+canonifyURLs = true    # or `relativeURLs = true` if you prefer purely relative links
 publishDir = "docs"
 
 [markup.highlight]
