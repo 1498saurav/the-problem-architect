@@ -4,7 +4,15 @@
 <meta name="supported-color-schemes" content="light dark"><meta name="description" content=""><title>Posts&nbsp;&ndash;&nbsp;The Problem Architect</title><link rel="stylesheet" href="https://1498saurav.github.io/the-problem-architect/css/core.min.0e2f26b6c0fba01017854e2c7f22ad3055acd9a47c225d391462f0161bd71c5fb583c592d122afeef04f902bf0dc68e4.css" integrity="sha384-Di8mtsD7oBAXhU4sfyKtMFWs2aR8Il05FGLwFhvXHF&#43;1g8WS0SKv7vBPkCvw3Gjk"><link rel="alternate" type="application/rss+xml" href="https://1498saurav.github.io/the-problem-architect/posts/index.xml" title="The Problem Architect" /><meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Posts" /><body><section id="header">
     <div class="header wrap"><span class="header left-side"><a class="site home" href="https://1498saurav.github.io/the-problem-architect/"><span class="site name">The Problem Architect</span></a></span>
-        <span class="header right-side"></span></div><div class="site slogan"><span class="title">~Saurav Sawant</span></div></section><section id="content"><section class="article header"><h1>Posts</h1></section></section><section id="footer"><div class="footer-wrap">
+        <span class="header right-side"></span></div><div class="site slogan"><span class="title">~Saurav Sawant</span></div></section><section id="content"><section class="article header"><h1>Posts</h1></section><ul class="note list"><li class="item">
+        
+        <a class="note" href="https://1498saurav.github.io/the-problem-architect/posts/dms-detach-partition/">
+        
+            <p class="note title">When AWS DMS Drops Your Partitioned Table: Deep Dive into DETACH PARTITION with PostgreSQL</p><p class="note date">Tuesday, June 3, 2025</p><p class="note content">1. Introduction to AWS DMS &amp; PostgreSQL AWS Database Migration Service (DMS) is a managed service for migrating and replicating data with minimal downtime.
+With PostgreSQL as a source, DMS uses logical replication slots and the WAL (Write-Ahead Log) to perform both full-load and CDC (ongoing) migrations.
+This ensures transactional consistency, since changes are read from the WAL and replayed on the target.
+2. Full-Load Parallelism vs. Single-Threaded CDC Full-load can be parallelized across tables or table slices using parameters like:
+<span class="mldr">&mldr;</span></p></a></li></ul></section><section id="footer"><div class="footer-wrap">
     <p class="copyright">The Problem Architect</p>
     <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
         target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.147.8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><meta name="description" content="1. Introduction to AWS DMS &amp; PostgreSQL
+AWS Database Migration Service (DMS) is a managed service for migrating and replicating data with minimal downtime.
+With PostgreSQL as a source, DMS uses logical replication slots and the WAL (Write-Ahead Log) to perform both full-load and CDC (ongoing) migrations.
+This ensures transactional consistency, since changes are read from the WAL and replayed on the target.
+2. Full-Load Parallelism vs. Single-Threaded CDC
+
+
+Full-load can be parallelized across tables or table slices using parameters like:"><title>When AWS DMS Drops Your Partitioned Table: Deep Dive into DETACH PARTITION with PostgreSQL&nbsp;&ndash;&nbsp;The Problem Architect</title><link rel="stylesheet" href="https://1498saurav.github.io/the-problem-architect/css/core.min.0e2f26b6c0fba01017854e2c7f22ad3055acd9a47c225d391462f0161bd71c5fb583c592d122afeef04f902bf0dc68e4.css" integrity="sha384-Di8mtsD7oBAXhU4sfyKtMFWs2aR8Il05FGLwFhvXHF&#43;1g8WS0SKv7vBPkCvw3Gjk"><meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="When AWS DMS Drops Your Partitioned Table: Deep Dive into DETACH PARTITION with PostgreSQL" /><body><section id="header">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="https://1498saurav.github.io/the-problem-architect/"><span class="site name">The Problem Architect</span></a></span>
+        <span class="header right-side"></span></div><div class="site slogan"><span class="title">~Saurav Sawant</span></div></section><section id="content"><div class="article-container"><section class="article header">
+    <h1 class="article title">When AWS DMS Drops Your Partitioned Table: Deep Dive into DETACH PARTITION with PostgreSQL</h1><p class="article date">Tuesday, June 3, 2025</p></section><article class="article markdown-body"><h2 id="1-introduction-to-aws-dms--postgresql">1. Introduction to AWS DMS &amp; PostgreSQL</h2>
+<p>AWS Database Migration Service (DMS) is a managed service for migrating and replicating data with minimal downtime.<br>
+With PostgreSQL as a source, DMS uses <strong>logical replication slots</strong> and the WAL (Write-Ahead Log) to perform both <strong>full-load</strong> and <strong>CDC (ongoing)</strong> migrations.<br>
+This ensures transactional consistency, since changes are read from the WAL and replayed on the target.</p>
+<h2 id="2-full-load-parallelism-vs-single-threaded-cdc">2. Full-Load Parallelism vs. Single-Threaded CDC</h2>
+<ul>
+<li>
+<p><strong>Full-load</strong> can be parallelized across tables or table slices using parameters like:</p>
+<ul>
+<li><code>MaxFullLoadSubTasks</code> (default 8, max 49) in <strong>TargetMetadata</strong>, and</li>
+<li><code>parallel-load</code> options in table-mapping rules.
+This greatly speeds up bulk data ingestion.</li>
+</ul>
+</li>
+<li>
+<p><strong>CDC</strong>, however, preserves transaction order via a single stream through the <strong>SORTER</strong>.<br>
+It’s inherently single-threaded to maintain consistency—even if you’ve enabled multiple sub-tasks for full load.</p>
+</li>
+</ul>
+<h2 id="3-capturing-ddl-captureddls--supported-statements">3. Capturing DDL: <code>CaptureDdls</code> &amp; Supported Statements</h2>
+<p>By default, DMS sets <code>CaptureDdls=true</code>, meaning <strong>all</strong> DDL events in the WAL are captured and replayed on the target.
+Supported DDLs include: <code>CREATE TABLE</code>, <code>DROP TABLE</code>, <code>ALTER TABLE</code>, <code>RENAME</code>, etc.
+Thus, operations you intend as “metadata-only” (e.g. DETACH PARTITION) can inadvertently translate into destructive DDL on your target.</p>
+<h2 id="4-how-dms-processes-ddl--dml">4. How DMS Processes DDL &amp; DML</h2>
+<ol>
+<li><strong>SOURCE_CAPTURE</strong><br>
+Reads WAL events (DML &amp; DDL) via logical replication.</li>
+<li><strong>SORTER</strong><br>
+Buffers and orders events in commit sequence. When in-memory buffers exceed <code>MemoryLimitTotal</code>, it spills to <strong>swap files</strong> on disk.</li>
+<li><strong>TARGET_APPLY</strong><br>
+Applies the sorted stream to your target endpoint, including any captured DDL.</li>
+</ol>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-plain" data-lang="plain"><span class="line"><span class="cl">[SORTER] I: Swap files in use—total storage used has exceeded the in-memory limit…
+</span></span></code></pre></div><h2 id="5-the-partition-detach-pitfall">5. The Partition DETACH Pitfall</h2>
+<p>Consider this common sequence:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">parent_table</span><span class="w"> </span><span class="n">DETACH</span><span class="w"> </span><span class="n">PARTITION</span><span class="w"> </span><span class="n">child_2025_06</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- child_2025_06 now exists standalone
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">DROP</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">child_2025_06</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></div><p>On PostgreSQL alone, this detaches then drops. But with DMS’s DDL capture:</p>
+<ol>
+<li><strong>DETACH</strong> emits a DROP TABLE for the child partition.</li>
+<li><strong>DMS</strong> captures that DROP TABLE and replays it on the target—removing your data container unexpectedly. <a href="https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Introduction.SupportedDDL.html"target="_blank" rel="noopener noreferrer">Supported DDL</a></li>
+</ol>
+<h2 id="6-tuning-swap-files--sorter-efficiency">6. Tuning Swap Files &amp; Sorter Efficiency</h2>
+<p>When large or bursty change volumes hit the SORTER, it spills to disk. You can tune:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Setting</th>
+          <th>Purpose</th>
+          <th>Default</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>MemoryLimitTotal</td>
+          <td>Max MB for in-memory transaction cache before spill</td>
+          <td>1024 MB</td>
+      </tr>
+      <tr>
+          <td>MemoryKeepTime</td>
+          <td>econds a transaction stays in memory before spilling</td>
+          <td>60 s</td>
+      </tr>
+      <tr>
+          <td>BatchApplyMemoryLimit</td>
+          <td>MB for batch-apply pre-processing</td>
+          <td>500 MB</td>
+      </tr>
+      <tr>
+          <td>BatchSplitSize</td>
+          <td>Maximum change records per batch (0 = unlimited)</td>
+          <td>0</td>
+      </tr>
+  </tbody>
+</table>
+<p><a href="https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.CustomizingTasks.TaskSettings.ChangeProcessingTuning.html"target="_blank" rel="noopener noreferrer">Task Settings Params</a></p>
+<p>For extreme cases, see the AWS Knowledge Center on swap-file troubleshooting. <a href="https://repost.aws/knowledge-center/dms-swap-files-consuming-space?utm_source=chatgpt.com"target="_blank" rel="noopener noreferrer">Swap file fixes</a></p>
+<h2 id="7-separate-ddl-from-cdc">7. Separate DDL from CDC</h2>
+<p>Use one task for full-load + CDC (no DDL) and another (or pg_dump) for schema changes only.
+In your task JSON, set &ldquo;CaptureDdls&rdquo;: false under PostgreSQLSettings when you only want DML.
+docs.aws.amazon.com</p>
+</article>
+</div>
+<div class="article bottom"></div></section><section id="footer"><div class="footer-wrap">
+    <p class="copyright">The Problem Architect</p>
+    <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
+        target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 
+        target="_blank" rel="noopener noreferrer">Notepadium</a>
+<a href='https://ipv6-test.com/validate.php?url=referer'
+  ><img loading="lazy" src='https://ipv6-test.com/button-ipv6-80x15.png' 
+        alt='ipv6 ready' title='ipv6 ready' border='0'
+/></a>
+</p></div></section></body>
+
+</html>

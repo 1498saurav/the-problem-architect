@@ -1,7 +1,7 @@
 ---
 title: "When AWS DMS Drops Your Partitioned Table: Deep Dive into DETACH PARTITION with PostgreSQL"
 date: 2025-06-03T20:00:00+05:30
-draft: true
+draft: false
 ---
 
 ## 1. Introduction to AWS DMS & PostgreSQL
