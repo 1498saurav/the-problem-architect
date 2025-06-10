@@ -1,0 +1,31 @@
+baseURL = "https://yourdomain.com/"
+languageCode = "en-us"
+title = "The Problem Architect"
+theme = "hugo-notepadium"
+enableRobotsTXT = true
+publishDir = "docs"
+
+[markup.highlight]
+codeFences = true
+noClasses = false
+
+[markup.goldmark.renderer]
+unsafe = true  # allow raw HTML in Markdown
+
+[params]
+# Theme style: "light", "dark", or "auto" for system preference
+style = "light"
+# Human-friendly post dates
+dateFormat = "Monday, January 2, 2006"
+logo = ""              # path to your logo if you have one
+slogan = "~Saurav Sawant"
+license = ""           # e.g. "CC BY-NC-SA 4.0"
+fullRss = false        # set to true if you want full posts in RSS
+ipv6ready = true       # show IPv6-ready badge
+
+[params.comments]
+enable = false         # turn on if you hookup Disqus/Utterances
+
+[params.math]
+enable = false         # turn on if you need KaTeX/MathJax
+use = "katex"
