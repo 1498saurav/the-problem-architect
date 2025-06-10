@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8"><meta name="generator" content="Hugo 0.147.8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><script src="/the-problem-architect/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=the-problem-architect/livereload" data-no-instant defer></script><meta charset="utf-8"><meta name="generator" content="Hugo 0.147.8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark"><meta name="description" content="1. Introduction to AWS DMS &amp; PostgreSQL
 AWS Database Migration Service (DMS) is a managed service for migrating and replicating data with minimal downtime.
@@ -8,9 +8,9 @@ This ensures transactional consistency, since changes are read from the WAL and 
 2. Full-Load Parallelism vs. Single-Threaded CDC
 
 
-Full-load can be parallelized across tables or table slices using parameters like:"><title>When AWS DMS Drops Your Partitioned Table: Deep Dive into DETACH PARTITION with PostgreSQL&nbsp;&ndash;&nbsp;The Problem Architect</title><link rel="stylesheet" href="/css/core.min.0e2f26b6c0fba01017854e2c7f22ad3055acd9a47c225d391462f0161bd71c5fb583c592d122afeef04f902bf0dc68e4.css" integrity="sha384-Di8mtsD7oBAXhU4sfyKtMFWs2aR8Il05FGLwFhvXHF&#43;1g8WS0SKv7vBPkCvw3Gjk"><meta name="twitter:card" content="summary" />
+Full-load can be parallelized across tables or table slices using parameters like:"><title>When AWS DMS Drops Your Partitioned Table: Deep Dive into DETACH PARTITION with PostgreSQL&nbsp;&ndash;&nbsp;The Problem Architect</title><link rel="stylesheet" href="http://localhost:1313/the-problem-architect/css/core.min.0e2f26b6c0fba01017854e2c7f22ad3055acd9a47c225d391462f0161bd71c5fb583c592d122afeef04f902bf0dc68e4.css" integrity="sha384-Di8mtsD7oBAXhU4sfyKtMFWs2aR8Il05FGLwFhvXHF&#43;1g8WS0SKv7vBPkCvw3Gjk"><meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="When AWS DMS Drops Your Partitioned Table: Deep Dive into DETACH PARTITION with PostgreSQL" /><body><section id="header">
-    <div class="header wrap"><span class="header left-side"><a class="site home" href="/"><span class="site name">The Problem Architect</span></a></span>
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="http://localhost:1313/the-problem-architect/"><span class="site name">The Problem Architect</span></a></span>
         <span class="header right-side"></span></div><div class="site slogan"><span class="title">~Saurav Sawant</span></div></section><section id="content"><div class="article-container"><section class="article header">
     <h1 class="article title">When AWS DMS Drops Your Partitioned Table: Deep Dive into DETACH PARTITION with PostgreSQL</h1><p class="article date">Tuesday, June 3, 2025</p></section><article class="article markdown-body"><h2 id="1-introduction-to-aws-dms--postgresql">1. Introduction to AWS DMS &amp; PostgreSQL</h2>
 <p>AWS Database Migration Service (DMS) is a managed service for migrating and replicating data with minimal downtime.<br>
